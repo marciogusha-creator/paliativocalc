@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Escores em Cuidados Paliativos</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased pb-24">
+    <header class="bg-teal-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold">PaliativoCalc</h1>
+                <p class="text-xs text-teal-100">Avaliação prognóstica e funcional</p>
+            </div>
+            <button onclick="copiarProntuario()" class="bg-teal-600 hover:bg-teal-500 text-xs font-semibold px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-teal-500">
+                📋 Copiar Prontuário
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <!-- Card Resumo Global -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sticky top-16 z-40 backdrop-blur bg-white/95">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center justify-between">
+                <span>Painel de Síntese Global</span>
+                <span id="badge-global" class="text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">Aguardando dados</span>
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center mb-3">
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <span class="block text-[10px] uppercase font-semibold text-slate-400">CFS</span>
+                    <span id="res-cfs" class="text-sm font-bold text-slate-700">-</span>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <span class="block text-[10px] uppercase font-semibold text-slate-400">ECOG</span>
+                    <span id="res-ecog" class="text-sm font-bold text-slate-700">-</span>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <span class="block text-[10px] uppercase font-semibold text-slate-400">KPS</span>
+                    <span id="res-kps" class="text-sm font-bold text-slate-700">-</span>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <span class="block text-[10px] uppercase font-semibold text-slate-400">PPS</span>
+                    <span id="res-pps" class="text-sm font-bold text-slate-700">-</span>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 col-span-2 sm:col-span-1">
+                    <span class="block text-[10px] uppercase font-semibold text-slate-400">PPI</span>
+                    <span id="res-ppi" class="text-sm font-bold text-slate-700">-</span>
+                </div>
+            </div>
+            <div id="text-resumo-global" class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                Selecione os parâmetros abaixo para gerar a análise consolidada e a estimativa de sobrevida.
+            </div>
+        </div>
+
+        <!-- 1. CFS -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>
+                    1. CFS (Clinical Frailty Scale)
+                </h3>
+                <span id="tag-cfs" class="text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600">-</span>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Nível de Fragilidade:</label>
+                <select id="select-cfs" onchange="calcularTudo()" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    <option value="">Selecione o nível clínico...</option>
+                    <option value="1">1 - Muito Vigoroso: Robusto, ativo, energizado e motivado</option>
+                    <option value="2">2 - Vigoroso: Sem sintomas ativos, mas menos apto que nível 1</option>
+                    <option value="3">3 - Bem Administrado: Doenças bem controladas, sem exercício regular</option>
+                    <option value="4">4 - Vulnerável: Não dependente, mas sintomas limitam atividades</option>
+                    <option value="5">5 - Fraco Leve: Dependência leve para AIVD (compras, finanças)</option>
+                    <option value="6">6 - Fraco Moderado: Dependência para AIVD e algumas AVD básicas</option>
+                    <option value="7">7 - Fraco Grave: Totalmente dependente para cuidados pessoais</option>
+                    <option value="8">8 - Fraco Muito Grave: Totalmente dependente, próximo ao fim da vida, estável</option>
+                    <option value="9">9 - Doença Terminal: Expectativa de vida < 6 meses, sem intercorrência aguda</option>
+                </select>
+            </div>
+            <div id="desc-cfs" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 hidden"></div>
+        </section>
+
+        <!-- 2. ECOG -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>
+                    2. ECOG (Performance Status OMS)
+                </h3>
+                <span id="tag-ecog" class="text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600">-</span>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Capacidade Funcional:</label>
+                <select id="select-ecog" onchange="calcularTudo()" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    <option value="">Selecione o escore ECOG...</option>
+                    <option value="0">0 - Totalmente ativo, sem restrições</option>
+                    <option value="1">1 - Restrito para atividades extenuantes; trabalho leve ok</option>
+                    <option value="2">2 - Ambulatorial > 50% do dia; incapaz de trabalhar; autocuidado mantido</option>
+                    <option value="3">3 - Limitado autocuidado; confinado à cama/cadeira > 50% do dia</option>
+                    <option value="4">4 - Completamente incapacitado; totalmente acamado/cadeirante</option>
+                    <option value="5">5 - Óbito</option>
+                </select>
+            </div>
+            <div id="desc-ecog" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 hidden"></div>
+        </section>
+
+        <!-- 3. KPS -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>
+                    3. KPS (Karnofsky Performance Scale)
+                </h3>
+                <span id="tag-kps" class="text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600">-</span>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Percentual Funcional:</label>
+                <select id="select-kps" onchange="calcularTudo()" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    <option value="">Selecione o KPS...</option>
+                    <option value="100">100% - Normal, sem queixas</option>
+                    <option value="90">90% - Atividade normal, sintomas menores</option>
+                    <option value="80">80% - Atividade normal com esforço</option>
+                    <option value="70">70% - Cuida de si, incapaz de atividade normal</option>
+                    <option value="60">60% - Assistência ocasional, cuida da maioria das necessidades</option>
+                    <option value="50">50% - Requer assistência considerável</option>
+                    <option value="40">40% - Incapacitado, requer cuidados especiais</option>
+                    <option value="30">30% - Gravemente incapacitado, hospitalização indicada</option>
+                    <option value="20">20% - Muito doente, suporte ativo necessário</option>
+                    <option value="10">10% - Moribundo</option>
+                    <option value="0">0% - Óbito</option>
+                </select>
+            </div>
+            <div id="desc-kps" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 hidden"></div>
+        </section>
+
+        <!-- 4. PPS -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>
+                    4. PPS (Palliative Performance Scale)
+                </h3>
+                <span id="tag-pps" class="text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600">-</span>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Percentual Paliativo:</label>
+                <select id="select-pps" onchange="calcularTudo()" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    <option value="">Selecione o PPS...</option>
+                    <option value="100">100% - Ambu. Plena, sem evidência de doença</option>
+                    <option value="90">90% - Ambu. Plena, alguma evidência de doença</option>
+                    <option value="80">80% - Ambu. Com esforço, alguma evidência</option>
+                    <option value="70">70% - Redução da ambulação, incapaz de trabalho normal</option>
+                    <option value="60">60% - Redução significativa, assistência ocasional</option>
+                    <option value="50">50% - Principalmente sentado/deitado, assistência substancial</option>
+                    <option value="40">40% - Principalmente acamado, assistência total</option>
+                    <option value="30">30% - Totalmente acamado</option>
+                    <option value="20">20% - Totalmente acamado, ingesta apenas de goles</option>
+                    <option value="10">10% - Totalmente acamado, semi-comatoso / comatoso</option>
+                </select>
+            </div>
+            <div id="desc-pps" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 hidden"></div>
+        </section>
+
+        <!-- 5. PPI -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>
+                    5. PPI (Palliative Prognostic Index)
+                </h3>
+                <span id="tag-ppi" class="text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600">-</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">PPS (PPI):</label>
+                    <select id="ppi-pps" onchange="calcularTudo()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        <option value="0">>= 60% (0 pts)</option>
+                        <option value="2.5">30 - 50% (2.5 pts)</option>
+                        <option value="4.0">10 - 20% (4.0 pts)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Ingesta Oral:</label>
+                    <select id="ppi-ingesta" onchange="calcularTudo()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        <option value="0">Normal (0 pts)</option>
+                        <option value="1.0">Moderadamente reduzida (1.0 pt)</option>
+                        <option value="1.5">Severamente reduzida / Nenhuma (1.5 pts)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Edema:</label>
+                    <select id="ppi-edema" onchange="calcularTudo()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        <option value="0">Ausente (0 pts)</option>
+                        <option value="1.0">Presente (1.0 pt)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Dispneia em repouso:</label>
+                    <select id="ppi-dispneia" onchange="calcularTudo()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        <option value="0">Ausente (0 pts)</option>
+                        <option value="1.0">Presente (1.0 pt)</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Delirium:</label>
+                    <select id="ppi-delirium" onchange="calcularTudo()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        <option value="0">Ausente (0 pts)</option>
+                        <option value="1.0">Presente (1.0 pt)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="desc-ppi" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 hidden"></div>
+        </section>
+    </main>
+
+    <script>
+        function getBadgeClass(tipo) {
+            if (tipo === 'verde') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            if (tipo === 'amarelo') return 'bg-amber-100 text-amber-800 border-amber-200';
+            return 'bg-rose-100 text-rose-800 border-rose-200';
+        }
+
+        function calcularTudo() {
+            // CFS
+            const cfsVal = document.getElementById('select-cfs').value;
+            const resCfs = document.getElementById('res-cfs');
+            const tagCfs = document.getElementById('tag-cfs');
+            const descCfs = document.getElementById('desc-cfs');
+            
+            if(cfsVal === "") {
+                resCfs.innerText = "-";
+                tagCfs.className = "text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600";
+                tagCfs.innerText = "-";
+                descCfs.classList.add('hidden');
+            } else {
+                let status = 'verde';
+                let texto = "Baixa fragilidade / Independente.";
+                let sob = "Varia conforme comorbidades.";
+                if(cfsVal >= 4 && cfsVal <= 6) { status = 'amarelo'; texto = "Fragilidade leve a moderada."; sob = "Monitorar declínio funcional."; }
+                if(cfsVal >= 7) { status = 'vermelho'; texto = "Fragilidade grave / Cuidados paliativos exclusivos."; sob = "Expectativa reduzida (meses a semanas)."; }
+                
+                resCfs.innerText = "Nível " + cfsVal;
+                tagCfs.className = "text-xs px-2 py-0.5 rounded font-medium border " + getBadgeClass(status);
+                tagCfs.innerText = status === 'verde' ? '🟢 Vigoroso' : (status === 'amarelo' ? '🟡 Vulnerável' : '🔴 Frágil Grave');
+                descCfs.innerHTML = `<strong>Interpretação:</strong> ${texto}<br><strong>Sobrevida:</strong> ${sob}`;
+                descCfs.classList.remove('hidden');
+            }
+
+            // ECOG
+            const ecogVal = document.getElementById('select-ecog').value;
+            const resEcog = document.getElementById('res-ecog');
+            const tagEcog = document.getElementById('tag-ecog');
+            const descEcog = document.getElementById('desc-ecog');
+
+            if(ecogVal === "") {
+                resEcog.innerText = "-";
+                tagEcog.className = "text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600";
+                tagEcog.innerText = "-";
+                descEcog.classList.add('hidden');
+            } else {
+                let status = 'verde';
+                let texto = "Bom desempenho funcional.";
+                let sob = "Meses a anos.";
+                if(ecogVal == 2) { status = 'amarelo'; texto = "Desempenho limítrofe."; sob = "Semanas a meses."; }
+                if(ecogVal >= 3) { status = 'vermelho'; texto = "Comprometimento funcional severo."; sob = "Semanas a dias (< 1 a 3 meses)."; }
+
+                resEcog.innerText = "ECOG " + ecogVal;
+                tagEcog.className = "text-xs px-2 py-0.5 rounded font-medium border " + getBadgeClass(status);
+                tagEcog.innerText = status === 'verde' ? '🟢 Ativo' : (status === 'amarelo' ? '🟡 Restrito' : '🔴 Acamado');
+                descEcog.innerHTML = `<strong>Interpretação:</strong> ${texto}<br><strong>Sobrevida estimada:</strong> ${sob}`;
+                descEcog.classList.remove('hidden');
+            }
+
+            // KPS
+            const kpsVal = document.getElementById('select-kps').value;
+            const resKps = document.getElementById('res-kps');
+            const tagKps = document.getElementById('tag-kps');
+            const descKps = document.getElementById('desc-kps');
+
+            if(kpsVal === "") {
+                resKps.innerText = "-";
+                tagKps.className = "text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600";
+                tagKps.innerText = "-";
+                descKps.classList.add('hidden');
+            } else {
+                let status = 'verde';
+                let texto = "Boa autonomia funcional.";
+                let sob = "Longo prazo.";
+                if(kpsVal >= 50 && kpsVal <= 70) { status = 'amarelo'; texto = "Assistência parcial requerida."; sob = "3 a 6 meses."; }
+                if(kpsVal <= 40) { status = 'vermelho'; texto = "Gravemente incapacitado / Fim de vida."; sob = "Semanas (< 3 meses)."; }
+
+                resKps.innerText = kpsVal + "%";
+                tagKps.className = "text-xs px-2 py-0.5 rounded font-medium border " + getBadgeClass(status);
+                tagKps.innerText = status === 'verde' ? '🟢 Autônomo' : (status === 'amarelo' ? '🟡 Parcial' : '🔴 Dependente');
+                descKps.innerHTML = `<strong>Interpretação:</strong> ${texto}<br><strong>Sobrevida estimada:</strong> ${sob}`;
+                descKps.classList.remove('hidden');
+            }
+
+            // PPS
+            const ppsVal = document.getElementById('select-pps').value;
+            const resPps = document.getElementById('res-pps');
+            const tagPps = document.getElementById('tag-pps');
+            const descPps = document.getElementById('desc-pps');
+
+            if(ppsVal === "") {
+                resPps.innerText = "-";
+                tagPps.className = "text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-600";
+                tagPps.innerText = "-";
+                descPps.classList.add('hidden');
+            } else {
+                let status = 'verde';
+                let sob = "Meses";
+                if(ppsVal >= 50 && ppsVal <= 60) { status = 'amarelo'; sob = "Semanas a meses (mediana 40-50 dias para 40-50%)"; }
+                if(ppsVal <= 40) { status = 'vermelho'; sob = ppsVal <= 20 ? "Dias (mediana de 3 a 4 dias)" : "Semanas (mediana de 10 a 20 dias para 30%)"; }
+
+                resPps.innerText = ppsVal + "%";
+                tagPps.className = "text-xs px-2 py-0.5 rounded font-medium border " + getBadgeClass(status);
+                tagPps.innerText = status === 'verde' ? '🟢 Estável' : (status === 'amarelo' ? '🟡 Declínio' : '🔴 Terminal');
+                descPps.innerHTML = `<strong>Interpretação:</strong> Escala Paliative Performance Scale.<br><strong>Sobrevida estimada:</strong> ${sob}`;
+                descPps.classList.remove('hidden');
+            }
+
+            // PPI
+            const ppiPps = parseFloat(document.getElementById('ppi-pps').value);
+            const ppiIng = parseFloat(document.getElementById('ppi-ingesta').value);
+            const ppiEde = parseFloat(document.getElementById('ppi-edema').value);
+            const ppiDis = parseFloat(document.getElementById('ppi-dispneia').value);
+            const ppiDel = parseFloat(document.getElementById('ppi-delirium').value);
+
+            const totalPpi = ppiPps + ppiIng + ppiEde + ppiDis + ppiDel;
+            const resPpi = document.getElementById('res-ppi');
+            const tagPpi = document.getElementById('tag-ppi');
+            const descPpi = document.getElementById('desc-ppi');
+
+            let statusPpi = 'verde';
+            let sobPpi = "Sobrevida > 6 semanas.";
+            if(totalPpi > 4.0 && totalPpi <= 6.0) { statusPpi = 'amarelo'; sobPpi = "Sobrevida estimada < 6 semanas."; }
+            if(totalPpi > 6.0) { statusPpi = 'vermelho'; sobPpi = "Sobrevida estimada < 3 semanas (alta especificidade de terminalidade)."; }
+
+            resPpi.innerText = totalPpi.toFixed(1) + " pts";
+            tagPpi.className = "text-xs px-2 py-0.5 rounded font-medium border " + getBadgeClass(statusPpi);
+            tagPpi.innerText = totalPpi > 6.0 ? '🔴 PPI Alto (>6)' : (totalPpi > 4.0 ? '🟡 PPI Moderado' : '🟢 PPI Baixo (<=4)');
+            descPpi.innerHTML = `<strong>Escore PPI Total:</strong> ${totalPpi.toFixed(1)} / 15<br><strong>Prognóstico:</strong> ${sobPpi}`;
+            descPpi.classList.remove('hidden');
+
+            // Resumo Global
+            const badgeGlobal = document.getElementById('badge-global');
+            const textGlobal = document.getElementById('text-resumo-global');
+            
+            let vermelhos = 0;
+            if(cfsVal >= 7) vermelhos++;
+            if(ecogVal >= 3) vermelhos++;
+            if(kpsVal <= 40 && kpsVal !== "") vermelhos++;
+            if(ppsVal <= 30 && ppsVal !== "") vermelhos++;
+            if(totalPpi > 6.0) vermelhos++;
+
+            if(cfsVal === "" && ecogVal === "" && kpsVal === "" && ppsVal === "") {
+                badgeGlobal.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600";
+                badgeGlobal.innerText = "Aguardando dados";
+                textGlobal.innerText = "Selecione os parâmetros nas escalas para gerar a síntese do paciente.";
+            } else if(vermelhos >= 2 || (ppsVal !== "" && ppsVal <= 30) || totalPpi > 6.0) {
+                badgeGlobal.className = "text-xs px-2.5 py-0.5 rounded-full font-medium " + getBadgeClass('vermelho');
+                badgeGlobal.innerText = "🔴 Risco Elevado / Fim de Vida";
+                textGlobal.innerHTML = "<strong>Convergência de Escores:</strong> Indicadores apontam para fase terminal ativa (dias a semanas). Adequar metas de cuidado e focar em conforto.";
+            } else {
+                badgeGlobal.className = "text-xs px-2.5 py-0.5 rounded-full font-medium " + getBadgeClass('amarelo');
+                badgeGlobal.innerText = "🟡 Doença Avançada / Monitorar";
+                textGlobal.innerHTML = "<strong>Convergência de Escores:</strong> Paciente com declínio funcional moderado a avançado. Acompanhamento paliativo contínuo.";
+            }
+        }
+
+        function copiarProntuario() {
+            const cfs = document.getElementById('select-cfs').value;
+            const ecog = document.getElementById('select-ecog').value;
+            const kps = document.getElementById('select-kps').value;
+            const pps = document.getElementById('select-pps').value;
+            const ppiPps = parseFloat(document.getElementById('ppi-pps').value);
+            const ppiIng = parseFloat(document.getElementById('ppi-ingesta').value);
+            const ppiEde = parseFloat(document.getElementById('ppi-edema').value);
+            const ppiDis = parseFloat(document.getElementById('ppi-dispneia').value);
+            const ppiDel = parseFloat(document.getElementById('ppi-delirium').value);
+            const totalPpi = ppiPps + ppiIng + ppiEde + ppiDis + ppiDel;
+
+            let textoProntuario = `--- AVALIAÇÃO DE ESCORES PALIATIVOS ---\n` +
+                `• CFS: ${cfs ? 'Nível ' + cfs : 'Não avaliado'}\n` +
+                `• ECOG: ${ecog !== '' ? ecog : 'Não avaliado'}\n` +
+                `• KPS: ${kps !== '' ? kps + '%' : 'Não avaliado'}\n` +
+                `• PPS: ${pps !== '' ? pps + '%' : 'Não avaliado'}\n` +
+                `• PPI: ${totalPpi.toFixed(1)} pts\n` +
+                `----------------------------------------`;
+
+            navigator.clipboard.writeText(textoProntuario).then(() => {
+                alert("Resumo copiado com sucesso para a área de transferência!");
+            }).catch(err => {
+                console.error('Erro ao copiar: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
